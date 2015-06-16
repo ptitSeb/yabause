@@ -73,9 +73,25 @@ static INLINE u32 TitanCreatePixel(u8 alpha, u8 red, u8 green, u8 blue) { return
 
 static u32 TitanBlendPixelsTop(u32 top, u32 bottom)
 {
+   #ifdef __arm__
+   u8 tr, tg, tb, br, bg, bb;
+   u16 alpha, ralpha;
+
+   alpha = (TitanGetAlpha(top) << 2) + 3 +1;
+   ralpha = 0x100 - alpha;
+
+   tr = (TitanGetRed(top) * alpha) >> 8;
+   tg = (TitanGetGreen(top) * alpha) >> 8;
+   tb = (TitanGetBlue(top) * alpha) >> 8;
+
+   br = (TitanGetRed(bottom) * ralpha) >> 8;
+   bg = (TitanGetGreen(bottom) * ralpha) >> 8;
+   bb = (TitanGetBlue(bottom) * ralpha) >> 8;
+   #else
    u8 alpha, ralpha, tr, tg, tb, br, bg, bb;
 
    alpha = (TitanGetAlpha(top) << 2) + 3;
+
    ralpha = 0xFF - alpha;
 
    tr = (TitanGetRed(top) * alpha) / 0xFF;
@@ -85,12 +101,30 @@ static u32 TitanBlendPixelsTop(u32 top, u32 bottom)
    br = (TitanGetRed(bottom) * ralpha) / 0xFF;
    bg = (TitanGetGreen(bottom) * ralpha) / 0xFF;
    bb = (TitanGetBlue(bottom) * ralpha) / 0xFF;
+   #endif
 
    return TitanCreatePixel(0x3F, tr + br, tg + bg, tb + bb);
 }
 
 static u32 TitanBlendPixelsBottom(u32 top, u32 bottom)
 {
+   #ifdef __arm__
+   u8 tr, tg, tb, br, bg, bb;
+   u16 alpha, ralpha;
+
+   if ((top & 0x80000000) == 0) return top;
+
+   alpha = (TitanGetAlpha(bottom) << 2) + 3 +1;
+   ralpha = 0x100 - alpha;
+
+   tr = (TitanGetRed(top) * alpha) >> 8;
+   tg = (TitanGetGreen(top) * alpha) >> 8;
+   tb = (TitanGetBlue(top) * alpha) >> 8;
+
+   br = (TitanGetRed(bottom) * ralpha) >> 8;
+   bg = (TitanGetGreen(bottom) * ralpha) >> 8;
+   bb = (TitanGetBlue(bottom) * ralpha) >> 8;
+   #else
    u8 alpha, ralpha, tr, tg, tb, br, bg, bb;
 
    if ((top & 0x80000000) == 0) return top;
@@ -105,6 +139,7 @@ static u32 TitanBlendPixelsBottom(u32 top, u32 bottom)
    br = (TitanGetRed(bottom) * ralpha) / 0xFF;
    bg = (TitanGetGreen(bottom) * ralpha) / 0xFF;
    bb = (TitanGetBlue(bottom) * ralpha) / 0xFF;
+   #endif
 
    return TitanCreatePixel(TitanGetAlpha(top), tr + br, tg + bg, tb + bb);
 }

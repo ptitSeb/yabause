@@ -69,6 +69,12 @@ static INLINE u32 COLSATSTRIPPRIORITY(u32 pixel) { return (0xFF000000 | pixel); 
 				(l & 0xFF000000)
 #endif
 
+#ifdef __arm__
+typedef float myreal;
+#else
+typedef double myreal;
+#endif
+
 static void PushUserClipping(int mode);
 static void PopUserClipping(void);
 
@@ -733,7 +739,7 @@ static void FASTCALL Vdp2DrawScroll(vdp2draw_struct *info)
       for (i = 0; i < vdp2width; i++)
       {
          u32 color, dot;
-         /* I'm really not sure about this... but I think the way we handle
+         /* I'm myreally not sure about this... but I think the way we handle
          high resolution gets in the way with window process. I may be wrong...
          This was added for Cotton Boomerang */
          int resxi = i * resxratio;
@@ -1711,6 +1717,9 @@ int VIDSoftInit(void)
 #ifdef USE_OPENGL
    glClear(GL_COLOR_BUFFER_BIT);
 
+   #ifdef HAVE_GLES
+   #warning TODO: Matrix mode wrapper
+   #else
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
    glOrtho(0, 320, 224, 0, 1, 0);
@@ -1718,6 +1727,7 @@ int VIDSoftInit(void)
    glMatrixMode(GL_TEXTURE);
    glLoadIdentity();
    glOrtho(-320, 320, -224, 224, 1, 0);
+   #endif
    outputwidth = 320;
    outputheight = 224;
 #endif
@@ -1753,6 +1763,9 @@ void VIDSoftResize(unsigned int w, unsigned int h, int on)
 
    glClear(GL_COLOR_BUFFER_BIT);
 
+   #ifdef HAVE_GLES
+   #warning TODO: Matrix mode wrapper
+   #else
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
    glOrtho(0, w, h, 0, 1, 0);
@@ -1760,6 +1773,7 @@ void VIDSoftResize(unsigned int w, unsigned int h, int on)
    glMatrixMode(GL_TEXTURE);
    glLoadIdentity();
    glOrtho(-(signed)w, w, -(signed)h, h, 1, 0);
+   #endif
 
    glViewport(0, 0, w, h);
    outputwidth = w;
@@ -1880,7 +1894,7 @@ static INLINE u32 alphablend16(u32 d, u32 s, u32 level)
 
 typedef struct _COLOR_PARAMS
 {
-	double r,g,b;
+	myreal r,g,b;
 } COLOR_PARAMS;
 
 COLOR_PARAMS leftColumnColor;
@@ -2251,42 +2265,317 @@ static int iterateOverLine(int x1, int y1, int x2, int y2, int greedy, void *dat
 }
 
 typedef struct {
-	double linenumber;
-	double texturestep;
-	double xredstep;
-	double xgreenstep;
-	double xbluestep;
-	int endcodesdetected;
-	int previousStep;
+  myreal linenumber;
+  myreal texturestep;
+  myreal xredstep;
+  myreal xgreenstep;
+  myreal xbluestep;
+  int endcodesdetected;
+  int previousStep;
 } DrawLineData;
 
 static int DrawLineCallback(int x, int y, int i, void *data)
 {
-	int currentStep;
-	DrawLineData *linedata = data;
+  int currentStep;
+  DrawLineData *linedata = data;
 
-	leftColumnColor.r += linedata->xredstep;
-	leftColumnColor.g += linedata->xgreenstep;
-	leftColumnColor.b += linedata->xbluestep;
+  leftColumnColor.r += linedata->xredstep;
+  leftColumnColor.g += linedata->xgreenstep;
+  leftColumnColor.b += linedata->xbluestep;
 
-	currentStep = (int)i * linedata->texturestep;
-	if (getpixel(linedata->linenumber, currentStep)) {
-		if (currentStep != linedata->previousStep) {
-			linedata->previousStep = currentStep;
-			linedata->endcodesdetected ++;
-		}
-	} else if (vdp1pixelsize == 2) {
-		putpixel(x, y);
-	} else {
-		putpixel8(x, y);
+  currentStep = (int)i * linedata->texturestep;
+  if (getpixel(linedata->linenumber, currentStep)) {
+    if (currentStep != linedata->previousStep) {
+      linedata->previousStep = currentStep;
+      linedata->endcodesdetected ++;
+    }
+  } else if (vdp1pixelsize == 2) {
+    putpixel(x, y);
+  } else {
+    putpixel8(x, y);
     }
 
-	if (linedata->endcodesdetected == 2) return -1;
+  if (linedata->endcodesdetected == 2) return -1;
 
-	return 0;
+  return 0;
+}
+static int DrawLine16b(int x, int y, int i, void *data)
+{
+  int currentStep;
+  DrawLineData *linedata = data;
+
+  leftColumnColor.r += linedata->xredstep;
+  leftColumnColor.g += linedata->xgreenstep;
+  leftColumnColor.b += linedata->xbluestep;
+
+  currentStep = (int)i * linedata->texturestep;
+  if (getpixel(linedata->linenumber, currentStep)) {
+    if (currentStep != linedata->previousStep) {
+      linedata->previousStep = currentStep;
+      linedata->endcodesdetected ++;
+    }
+  }
+  putpixel(x, y);
+
+  if (linedata->endcodesdetected == 2) return -1;
+
+  return 0;
+}
+static int DrawLine8b(int x, int y, int i, void *data)
+{
+  int currentStep;
+  DrawLineData *linedata = data;
+
+  leftColumnColor.r += linedata->xredstep;
+  leftColumnColor.g += linedata->xgreenstep;
+  leftColumnColor.b += linedata->xbluestep;
+
+  currentStep = (int)i * linedata->texturestep;
+  if (getpixel(linedata->linenumber, currentStep)) {
+    if (currentStep != linedata->previousStep) {
+      linedata->previousStep = currentStep;
+      linedata->endcodesdetected ++;
+    }
+  }
+  putpixel8(x, y);
+
+  if (linedata->endcodesdetected == 2) return -1;
+
+  return 0;
 }
 
-static int DrawLine( int x1, int y1, int x2, int y2, int greedy, double linenumber, double texturestep, double xredstep, double xgreenstep, double xbluestep)
+static int iterateOverLine16b(int x1, int y1, int x2, int y2, int greedy, void *data) {
+  int i, a, ax, ay, dx, dy;
+
+  a = i = 0;
+  dx = x2 - x1;
+  dy = y2 - y1;
+  ax = (dx >= 0) ? 1 : -1;
+  ay = (dy >= 0) ? 1 : -1;
+
+  //burning rangers tries to draw huge shapes
+  //this will at least let it run
+  if(abs(dx) > 999 || abs(dy) > 999)
+    return INT_MAX;
+
+  if (abs(dx) > abs(dy)) {
+    if (ax != ay) dx = -dx;
+
+    for (; x1 != x2; x1 += ax, i++) {
+      if (DrawLine16b(x1, y1, i, data) != 0) return i + 1;
+
+      a += dy;
+      if (abs(a) >= abs(dx)) {
+        a -= dx;
+        y1 += ay;
+
+        // Make sure we 'fill holes' the same as the Saturn
+        if (greedy) {
+          i ++;
+          if (ax == ay) {
+            if (DrawLine16b(x1 + ax, y1 - ay, i, data) != 0)
+              return i + 1;
+          } else {
+            if (DrawLine16b(x1, y1, i, data) != 0)
+              return i + 1;
+          }
+        }
+      }
+    }
+
+    // If the line isn't greedy here, we end up with gaps that don't occur on the Saturn
+    if (/*(i == 0) || (y1 != y2)*/1) {
+      DrawLine16b(x2, y2, i, data);
+      i ++;
+    }
+  } else {
+    if (ax != ay) dy = -dy;
+
+    for (; y1 != y2; y1 += ay, i++) {
+      if (DrawLine16b(x1, y1, i, data) != 0) return i + 1;
+
+      a += dx;
+      if (abs(a) >= abs(dy)) {
+        a -= dy;
+        x1 += ax;
+
+        if (greedy) {
+          i ++;
+          if (ay == ax) {
+            if (DrawLine16b(x1, y1, i, data) != 0)
+              return i + 1;
+          } else {
+            if (DrawLine16b(x1 - ax, y1 + ay, i, data) != 0)
+              return i + 1;
+          }
+        }
+      }
+    }
+
+    if (/*(i == 0) || (y1 != y2)*/1) {
+      DrawLine16b(x2, y2, i, data);
+      i ++;
+    }
+  }
+
+  return i;
+}
+
+static int iterateOverLine8b(int x1, int y1, int x2, int y2, int greedy, void *data) {
+  int i, a, ax, ay, dx, dy;
+
+  a = i = 0;
+  dx = x2 - x1;
+  dy = y2 - y1;
+  ax = (dx >= 0) ? 1 : -1;
+  ay = (dy >= 0) ? 1 : -1;
+
+  //burning rangers tries to draw huge shapes
+  //this will at least let it run
+  if(abs(dx) > 999 || abs(dy) > 999)
+    return INT_MAX;
+
+  if (abs(dx) > abs(dy)) {
+    if (ax != ay) dx = -dx;
+
+    for (; x1 != x2; x1 += ax, i++) {
+      if (DrawLine8b(x1, y1, i, data) != 0) return i + 1;
+
+      a += dy;
+      if (abs(a) >= abs(dx)) {
+        a -= dx;
+        y1 += ay;
+
+        // Make sure we 'fill holes' the same as the Saturn
+        if (greedy) {
+          i ++;
+          if (ax == ay) {
+            if (DrawLine8b(x1 + ax, y1 - ay, i, data) != 0)
+              return i + 1;
+          } else {
+            if (DrawLine8b(x1, y1, i, data) != 0)
+              return i + 1;
+          }
+        }
+      }
+    }
+
+    // If the line isn't greedy here, we end up with gaps that don't occur on the Saturn
+    if (/*(i == 0) || (y1 != y2)*/1) {
+      DrawLine8b(x2, y2, i, data);
+      i ++;
+    }
+  } else {
+    if (ax != ay) dy = -dy;
+
+    for (; y1 != y2; y1 += ay, i++) {
+      if (DrawLine8b(x1, y1, i, data) != 0) return i + 1;
+
+      a += dx;
+      if (abs(a) >= abs(dy)) {
+        a -= dy;
+        x1 += ax;
+
+        if (greedy) {
+          i ++;
+          if (ay == ax) {
+            if (DrawLine8b(x1, y1, i, data) != 0)
+              return i + 1;
+          } else {
+            if (DrawLine8b(x1 - ax, y1 + ay, i, data) != 0)
+              return i + 1;
+          }
+        }
+      }
+    }
+
+    if (/*(i == 0) || (y1 != y2)*/1) {
+      DrawLine8b(x2, y2, i, data);
+      i ++;
+    }
+  }
+
+  return i;
+}
+
+static int iterateOverLineFixed(int x1, int y1, int x2, int y2, int greedy, void *data) {
+  int i, a, ax, ay, dx, dy;
+
+  a = i = 0;
+  dx = x2 - x1;
+  dy = y2 - y1;
+  ax = (dx >= 0) ? 1 : -1;
+  ay = (dy >= 0) ? 1 : -1;
+
+  //burning rangers tries to draw huge shapes
+  //this will at least let it run
+  if(abs(dx) > 999 || abs(dy) > 999)
+    return INT_MAX;
+
+  if (abs(dx) > abs(dy)) {
+    if (ax != ay) dx = -dx;
+
+    for (; x1 != x2; x1 += ax, i++) {
+      if (DrawLineCallback(x1, y1, i, data) != 0) return i + 1;
+
+      a += dy;
+      if (abs(a) >= abs(dx)) {
+        a -= dx;
+        y1 += ay;
+
+        // Make sure we 'fill holes' the same as the Saturn
+        if (greedy) {
+          i ++;
+          if (ax == ay) {
+            if (DrawLineCallback(x1 + ax, y1 - ay, i, data) != 0)
+              return i + 1;
+          } else {
+            if (DrawLineCallback(x1, y1, i, data) != 0)
+              return i + 1;
+          }
+        }
+      }
+    }
+
+    // If the line isn't greedy here, we end up with gaps that don't occur on the Saturn
+    if (/*(i == 0) || (y1 != y2)*/1) {
+      DrawLineCallback(x2, y2, i, data);
+      i ++;
+    }
+  } else {
+    if (ax != ay) dy = -dy;
+
+    for (; y1 != y2; y1 += ay, i++) {
+      if (DrawLineCallback(x1, y1, i, data) != 0) return i + 1;
+
+      a += dx;
+      if (abs(a) >= abs(dy)) {
+        a -= dy;
+        x1 += ax;
+
+        if (greedy) {
+          i ++;
+          if (ay == ax) {
+            if (DrawLineCallback(x1, y1, i, data) != 0)
+              return i + 1;
+          } else {
+            if (DrawLineCallback(x1 - ax, y1 + ay, i, data) != 0)
+              return i + 1;
+          }
+        }
+      }
+    }
+
+    if (/*(i == 0) || (y1 != y2)*/1) {
+      DrawLineCallback(x2, y2, i, data);
+      i ++;
+    }
+  }
+
+  return i;
+}
+
+static int DrawLine( int x1, int y1, int x2, int y2, int greedy, myreal linenumber, myreal texturestep, myreal xredstep, myreal xgreenstep, myreal xbluestep)
 {
 	DrawLineData data;
 
@@ -2297,13 +2586,17 @@ static int DrawLine( int x1, int y1, int x2, int y2, int greedy, double linenumb
 	data.xbluestep = xbluestep;
 	data.endcodesdetected = 0;
 	data.previousStep = 123456789;
-
-	return iterateOverLine(x1, y1, x2, y2, greedy, &data, DrawLineCallback);
+  if (vdp1pixelsize == 2) {
+    return iterateOverLine16b(x1, y1, x2, y2, greedy, &data);
+  } else {
+    return iterateOverLine8b(x1, y1, x2, y2, greedy, &data);
+  }
+	//return iterateOverLineFixed(x1, y1, x2, y2, greedy, &data);
 }
 
-static INLINE double interpolate(double start, double end, int numberofsteps) {
+static INLINE myreal interpolate(myreal start, myreal end, int numberofsteps) {
 
-	double stepvalue = 0;
+	myreal stepvalue = 0;
 
 	if(numberofsteps == 0)
 		return 1;
@@ -2365,7 +2658,7 @@ storeLineCoords(int x, int y, int i, void *arrays) {
 	return 0;
 }
 
-//a real vdp1 draws with arbitrary lines
+//a myreal vdp1 draws with arbitrary lines
 //this is why endcodes are possible
 //this is also the reason why half-transparent shading causes moire patterns
 //and the reason why gouraud shading can be applied to a single line draw command
@@ -2380,8 +2673,8 @@ static void drawQuad(s16 tl_x, s16 tl_y, s16 bl_x, s16 bl_y, s16 tr_x, s16 tr_y,
 	COLOR_PARAMS topLeftToBottomLeftColorStep = {0,0,0}, topRightToBottomRightColorStep = {0,0,0};
 		
 	//how quickly we step through the line arrays
-	double leftLineStep = 1;
-	double rightLineStep = 1; 
+	float leftLineStep = 1;
+	float rightLineStep = 1; 
 
 	//a lookup table for the gouraud colors
 	COLOR colors[4];
@@ -2422,20 +2715,20 @@ static void drawQuad(s16 tl_x, s16 tl_y, s16 bl_x, s16 bl_y, s16 tr_x, s16 tr_y,
 	if(total == totalleft && totalleft != totalright) {
 		//left side is larger
 		leftLineStep = 1;
-		rightLineStep = (double)totalright / totalleft;
+		rightLineStep = (float)totalright / totalleft;
 	}
 	else if(totalleft != totalright){
 		//right side is larger
 		rightLineStep = 1;
-		leftLineStep = (double)totalleft / totalright;
+		leftLineStep = (float)totalleft / totalright;
 	}
 
 	for(i = 0; i < total; i++) {
 
 		int xlinelength;
 
-		double xtexturestep;
-		double ytexturestep;
+		float xtexturestep;
+		float ytexturestep;
 
 		COLOR_PARAMS rightColumnColor;
 
@@ -2631,7 +2924,7 @@ void VIDSoftVdp1DistortedSpriteDraw() {
 	drawQuad(xa,ya,xd,yd,xb,yb,xc,yc);
 }
 
-static void gouraudLineSetup(double * redstep, double * greenstep, double * bluestep, int length, COLOR table1, COLOR table2) {
+static void gouraudLineSetup(myreal * redstep, myreal * greenstep, myreal * bluestep, int length, COLOR table1, COLOR table2) {
 
 	gouraudTable();
 
@@ -2648,7 +2941,7 @@ void VIDSoftVdp1PolylineDraw(void)
 {
 	int X[4];
 	int Y[4];
-	double redstep = 0, greenstep = 0, bluestep = 0;
+	myreal redstep = 0, greenstep = 0, bluestep = 0;
 	int length;
 
 	Vdp1ReadCommand(&cmd, Vdp1Regs->addr);
@@ -2682,7 +2975,7 @@ void VIDSoftVdp1PolylineDraw(void)
 void VIDSoftVdp1LineDraw(void)
 {
 	int x1, y1, x2, y2;
-	double redstep = 0, greenstep = 0, bluestep = 0;
+	myreal redstep = 0, greenstep = 0, bluestep = 0;
 	int length;
 
 	Vdp1ReadCommand(&cmd, Vdp1Regs->addr);
@@ -3083,9 +3376,13 @@ void VIDSoftVdp2DrawEnd(void)
 	else
 		i = 0;
 
+   #ifdef HAVE_GLES
+   #warning TODO (raster + glDrawPixels)
+   #else
    glRasterPos2i(0, outputheight * i / vdp2height);
    glPixelZoom((float)outputwidth / (float)vdp2width, 0 - ((float)outputheight / (float)(vdp2height+i+i)));
    glDrawPixels(vdp2width, vdp2height, GL_RGBA, GL_UNSIGNED_BYTE, dispbuffer);
+   #endif
 
    if (! OSDUseBuffer())
       OSDDisplayMessages(NULL, -1, -1);

@@ -3064,12 +3064,17 @@ static void Vdp2DrawBackScreen(void)
          lineColors[3*y+2] = (dot & 0x7C00) >> 7;
          line[4*y+0] = 0;
          line[4*y+1] = y;
+      #ifdef HAVE_GLES
+      // PAndora port
+      #warning *TODO*
+      #else
          line[4*y+2] = vdp2width;
          line[4*y+3] = y;         
       }
       
       glColorPointer(3, GL_UNSIGNED_BYTE, 0, lineColors);
       glEnableClientState(GL_COLOR_ARRAY);
+      #endif
       glVertexPointer(2, GL_INT, 0, line);
       glEnableClientState(GL_VERTEX_ARRAY);
       glDrawArrays(GL_LINES,0,vdp2height*2);
@@ -3087,6 +3092,10 @@ static void Vdp2DrawBackScreen(void)
       line[2] = vdp2width;
       line[3] = 0;    
       line[4] = vdp2width;
+      #ifdef HAVE_GLES
+      // PAndora port
+      #warning *TODO*
+      #else
       line[5] = vdp2height;
       line[6] = 0;
       line[7] = vdp2height;    
@@ -3094,10 +3103,10 @@ static void Vdp2DrawBackScreen(void)
       glDisable(GL_TEXTURE_2D);
       glVertexPointer(2, GL_INT, 0, line);
       glEnableClientState(GL_VERTEX_ARRAY);
+      glColor3ub(0xFF, 0xFF, 0xFF);
       glDisableClientState(GL_TEXTURE_COORD_ARRAY);
       glDrawArrays(GL_TRIANGLE_FAN,0,8);
-      glColor3ub(0xFF, 0xFF, 0xFF);
-      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+      #endif
    }
 }
 

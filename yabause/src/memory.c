@@ -1083,13 +1083,19 @@ int YabSaveState(const char *filename)
    if ((buf = (u8 *)malloc(totalsize)) == NULL)
    {
       return -2;
+   #ifndef HAVE_GLES
    }
 
+   #endif
    YuiSwapBuffers();
    #ifdef USE_OPENGL
+   #ifdef HAVE_GLES
+   #warning TODO
+   #else
    glPixelZoom(1,1);
    glReadBuffer(GL_BACK);
    glReadPixels(0, 0, outputwidth, outputheight, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+   #endif
    #endif
    YuiSwapBuffers();
 
@@ -1326,17 +1332,25 @@ int YabLoadState(const char *filename)
 
    YuiSwapBuffers();
 
-   #ifdef USE_OPENGL
+   #ifdef USE_
+   #ifdef HAVE_GLES
+   #warning TODO
+   #else
    if(VIDCore->id == VIDCORE_SOFT)
      glRasterPos2i(0, outputheight);
    if(VIDCore->id == VIDCORE_OGL)
 	 glRasterPos2i(0, outputheight/2);
    #endif
+   #endif
 
    VIDCore->GetGlSize(&curroutputwidth, &curroutputheight);
    #ifdef USE_OPENGL
+   #ifdef HAVE_GLES
+   #warning TODO (raster + glDrawPixels)
+   #else
    glPixelZoom((float)curroutputwidth / (float)outputwidth, ((float)curroutputheight / (float)outputheight));
    glDrawPixels(outputwidth, outputheight, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+   #endif
    #endif
    YuiSwapBuffers();
    free(buf);

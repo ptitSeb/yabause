@@ -30,12 +30,16 @@
 #include "ygl.h"
 #include "yui.h"
 #include "vidshared.h"
-
+#ifdef HAVE_GLES
+#include <EGL/egl.h>
+#define glXGetProcAddress eglGetProcAddress
+#else
 #ifdef WIN32
 #include <windows.h>
 #include <wingdi.h>
 #elif HAVE_GLXGETPROCADDRESS
 #include <GL/glx.h>
+#endif
 #endif
 
 

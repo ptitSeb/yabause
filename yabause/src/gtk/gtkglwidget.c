@@ -32,6 +32,10 @@ static void yui_gl_class_init	(YuiGlClass * klass);
 static void yui_gl_init		(YuiGl      * yfe);
 static gboolean yui_gl_resize   (GtkWidget *w,GdkEventConfigure *event, gpointer data);
 
+#ifdef USE_RGB_565
+void* temp_buff = NULL;
+#endif
+
 void yui_gl_draw(YuiGl * glxarea) {
 #ifdef HAVE_LIBGTKGLEXT
 	GdkGLContext *glcontext = gtk_widget_get_gl_context (GTK_WIDGET(glxarea));
@@ -47,15 +51,39 @@ void yui_gl_draw(YuiGl * glxarea) {
 	int buf_width, buf_height;
 	GdkPixbuf * pixbuf, * scaledpixbuf;
 
+	if (dispbuffer == NULL) return;
+
 	VIDCore->GetGlSize( &buf_width, &buf_height );
+
+	if (buf_width<=0) return;
+	
 	glxarea->pixels_width = GTK_WIDGET(glxarea)->allocation.width;
 	glxarea->pixels_height = GTK_WIDGET(glxarea)->allocation.height;
 	glxarea->pixels_rowstride = glxarea->pixels_width * 4;
 	glxarea->pixels_rowstride += (glxarea->pixels_rowstride % 4)? (4 - (glxarea->pixels_rowstride % 4)): 0;
 
-	if (dispbuffer == NULL) return;
+	#ifdef USE_RGB_565
+	int a;
+	if (!temp_buff)
+		temp_buff = malloc(800*480*4);
+	unsigned short *src = (unsigned short*)dispbuffer;
+	unsigned int *dst = (unsigned int*)temp_buff;
+	#define B (((tmp>>11)*255)>>5)
+	#define G (((tmp>>5&63)*255)>>6)
+	#define R (((tmp&31)*255)>>5)
+	for (a = 0; a<buf_width*buf_height; a++) {
+		const unsigned short tmp = *(src++);
+		*(dst++)=0xff000000|B<<16|G<<8|R;
+	}
+	#endif
 
-	pixbuf = gdk_pixbuf_new_from_data((const guchar *) dispbuffer, GDK_COLORSPACE_RGB, TRUE, 8,
+	pixbuf = gdk_pixbuf_new_from_data((const guchar *) 
+	#ifdef USE_RGB_565
+		temp_buff
+	#else
+		dispbuffer
+	#endif
+		, GDK_COLORSPACE_RGB, TRUE, 8,
 			buf_width, buf_height, buf_width*4, NULL, NULL);
 
 	if (( glxarea->pixels_width < buf_width + X_NOSCALE )&&( glxarea->pixels_height < buf_height + Y_NOSCALE )) {

@@ -31,11 +31,16 @@
 #include "vidshared.h"
 #include "error.h"
 
+#ifdef HAVE_GLES
+#include <EGL/egl.h>
+#define glXGetProcAddress eglGetProcAddress
+#else
 #ifdef WIN32
 #include <windows.h>
 #include <wingdi.h>
 #elif HAVE_GLXGETPROCADDRESS
 #include <GL/glx.h>
+#endif
 #endif
 YglTextureManager * YglTM;
 Ygl * _Ygl;
@@ -69,7 +74,7 @@ void STDCALL * (*yglGetProcAddress)(const char *szProcName) = (void STDCALL *(*)
 #define yglGetProcAddress wglGetProcAddress
 #endif
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(HAVE_GLES)
 
 #ifndef HAVE_FBO
 #define glBindFramebuffer glBindFramebufferEXT

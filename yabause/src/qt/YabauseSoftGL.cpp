@@ -48,12 +48,27 @@ void YabauseGL::updateView( const QSize& s )
 
 void YabauseGL::swapBuffers()
 {
-	this->update(this->rect());
+//	this->update(this->rect());
+	this->repaint(this->rect());
 }
 
 QImage YabauseGL::grabFrameBuffer(bool withAlpha)
 {
-	return QImage();
+//	return QImage();
+	int buf_width, buf_height;
+
+	if (dispbuffer == NULL) return QImage();
+
+	VIDCore->GetGlSize( &buf_width, &buf_height );
+
+#ifdef USE_RGB_555
+	QImage image = QImage((uchar *) dispbuffer, buf_width, buf_height, QImage::Format_RGB555);
+#elif USE_RGB_565
+	QImage image = QImage((uchar *) dispbuffer, buf_width, buf_height, QImage::Format_RGB16);
+#else
+	QImage image = QImage((uchar *) dispbuffer, buf_width, buf_height, QImage::Format_RGB32);
+#endif
+	return image.rgbSwapped();
 }
 
 void YabauseGL::paintEvent( QPaintEvent * event )
