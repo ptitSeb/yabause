@@ -1339,7 +1339,7 @@ int YabLoadState(const char *filename)
    if(VIDCore->id == VIDCORE_SOFT)
      glRasterPos2i(0, outputheight);
    if(VIDCore->id == VIDCORE_OGL)
-	 glRasterPos2i(0, outputheight/2);
+	 glRasterPos2i(0, outputheight * 0.5);
    #endif
    #endif
 
