@@ -6080,7 +6080,7 @@ int sh2_recompile_block(int addr)
       // Don't recompile stuff that's already compiled
       if(check_addr(start+i*2+2+slave)) done=1;
       // Don't get too close to the limit
-      if(i>MAXBLOCK/2) done=1;
+      if(i>MAXBLOCK * 0.5) done=1;
     }
     if(yabsys.emulatebios) {
       if(start+i*2>=0x200&&start+i*2<0x600) {
