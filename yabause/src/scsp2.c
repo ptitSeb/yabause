@@ -519,7 +519,7 @@ PSP_SECTION(both_write)
 #ifdef PSP
 __attribute__((aligned(64)))
 #endif
-static u16 scsp_regcache[0x1000/2];
+static u16 scsp_regcache[0x1000 * 0.5];
 
 // CDDA input buffer and read/write pointers
 PSP_SECTION(sc_write)
@@ -853,7 +853,7 @@ int ScspInit(int coreid, void (*interrupt_handler)(void))
       if (i < SCSP_LFO_LEN / 2)
          scsp_lfo_wave_amp[SCSP_LFO_TRIANGLE][i] = i*2;
       else
-         scsp_lfo_wave_amp[SCSP_LFO_TRIANGLE][i] = SCSP_LFO_MASK - ((i - SCSP_LFO_LEN/2) * 2);
+         scsp_lfo_wave_amp[SCSP_LFO_TRIANGLE][i] = SCSP_LFO_MASK - ((i - SCSP_LFO_LEN * 0.5) * 2);
       scsp_lfo_wave_amp[SCSP_LFO_NOISE][i] = rand() & SCSP_LFO_MASK;
       // FIXME: note that the noise generator output should be independent
       // of LFORE/LFOF
@@ -865,16 +865,16 @@ int ScspInit(int coreid, void (*interrupt_handler)(void))
       else
          scsp_lfo_wave_freq[SCSP_LFO_SAWTOOTH][i] = i - SCSP_LFO_LEN;
       if (i < SCSP_LFO_LEN / 2)
-         scsp_lfo_wave_freq[SCSP_LFO_SQUARE][i] = SCSP_LFO_MASK - SCSP_LFO_LEN/2;
+         scsp_lfo_wave_freq[SCSP_LFO_SQUARE][i] = SCSP_LFO_MASK - SCSP_LFO_LEN * 0.5;
       else
-         scsp_lfo_wave_freq[SCSP_LFO_SQUARE][i] = 0 - SCSP_LFO_LEN/2;
+         scsp_lfo_wave_freq[SCSP_LFO_SQUARE][i] = 0 - SCSP_LFO_LEN * 0.5;
       if (i < SCSP_LFO_LEN / 4)
          scsp_lfo_wave_freq[SCSP_LFO_TRIANGLE][i] = i*2;
       else if (i < SCSP_LFO_LEN * 3 / 4)
          scsp_lfo_wave_freq[SCSP_LFO_TRIANGLE][i] = SCSP_LFO_MASK - i*2;
       else
          scsp_lfo_wave_freq[SCSP_LFO_TRIANGLE][i] = i*2 - SCSP_LFO_LEN*2;
-      scsp_lfo_wave_freq[SCSP_LFO_NOISE][i] = scsp_lfo_wave_amp[SCSP_LFO_NOISE][i] - SCSP_LFO_LEN/2;
+      scsp_lfo_wave_freq[SCSP_LFO_NOISE][i] = scsp_lfo_wave_amp[SCSP_LFO_NOISE][i] - SCSP_LFO_LEN * 0.5;
    }
 
    for (i = 0; i < 4; i++)
