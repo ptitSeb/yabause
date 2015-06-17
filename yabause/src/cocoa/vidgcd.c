@@ -2395,7 +2395,7 @@ void VIDGCDVdp1ScaledSpriteDraw(){
 	case 0x6: // Upper-Center
 		x1 = ((int)cmd.CMDXB);
 		y1 = ((int)cmd.CMDYB);
-		x0 = x0 - x1/2;
+		x0 = x0 - x1 * 0.5;
 		x1++;
 		y1++;
 		break;
@@ -2409,15 +2409,15 @@ void VIDGCDVdp1ScaledSpriteDraw(){
 	case 0x9: // Center-left
 		x1 = ((int)cmd.CMDXB);
 		y1 = ((int)cmd.CMDYB);
-		y0 = y0 - y1/2;
+		y0 = y0 - y1 * 0.5;
 		x1++;
 		y1++;
 		break;
 	case 0xA: // Center-center
 		x1 = ((int)cmd.CMDXB);
 		y1 = ((int)cmd.CMDYB);
-		x0 = x0 - x1/2;
-		y0 = y0 - y1/2;
+		x0 = x0 - x1 * 0.5;
+		y0 = y0 - y1 * 0.5;
 		x1++;
 		y1++;
 		break;
@@ -2425,7 +2425,7 @@ void VIDGCDVdp1ScaledSpriteDraw(){
 		x1 = ((int)cmd.CMDXB);
 		y1 = ((int)cmd.CMDYB);
 		x0 = x0 - x1;
-		y0 = y0 - y1/2;
+		y0 = y0 - y1 * 0.5;
 		x1++;
 		y1++;
 		break;
@@ -2439,7 +2439,7 @@ void VIDGCDVdp1ScaledSpriteDraw(){
 	case 0xE: // Lower-center
 		x1 = ((int)cmd.CMDXB);
 		y1 = ((int)cmd.CMDYB);
-		x0 = x0 - x1/2;
+		x0 = x0 - x1 * 0.5;
 		y0 = y0 - y1;
 		x1++;
 		y1++;
