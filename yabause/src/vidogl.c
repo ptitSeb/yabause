@@ -2201,7 +2201,15 @@ void VIDOGLResize(unsigned int w, unsigned int h, int on)
    GlWidth=w;
    
    YglGLInit(2048, 1024);
-   glViewport(0, 0, w, h);
+   int new_w = (int)((h/224)*320);
+
+   if ( w - new_w > 50 )
+   {
+      int spacer = (int)((w-new_w)/2);
+      glViewport( spacer, 0, w-spacer, h);
+   }
+   else
+      glViewport(0, 0, w, h);
    YglNeedToUpdateWindow();
 
    SetSaturnResolution(vdp2width, vdp2height);
@@ -3064,22 +3072,22 @@ static void Vdp2DrawBackScreen(void)
          lineColors[3*y+2] = (dot & 0x7C00) >> 7;
          line[4*y+0] = 0;
          line[4*y+1] = y;
-      #ifdef HAVE_GLES
-      // PAndora port
-      #warning *TODO*
-      #else
          line[4*y+2] = vdp2width;
          line[4*y+3] = y;         
       }
       
+      #ifdef HAVE_GLES
+      // PAndora port
+      #warning *TODO*
+      #else
       glColorPointer(3, GL_UNSIGNED_BYTE, 0, lineColors);
       glEnableClientState(GL_COLOR_ARRAY);
-      #endif
       glVertexPointer(2, GL_INT, 0, line);
       glEnableClientState(GL_VERTEX_ARRAY);
       glDrawArrays(GL_LINES,0,vdp2height*2);
       glDisableClientState(GL_COLOR_ARRAY);      
       glColor3ub(0xFF, 0xFF, 0xFF);
+      #endif
    }
    else
    {
@@ -3092,14 +3100,14 @@ static void Vdp2DrawBackScreen(void)
       line[2] = vdp2width;
       line[3] = 0;    
       line[4] = vdp2width;
-      #ifdef HAVE_GLES
-      // PAndora port
-      #warning *TODO*
-      #else
       line[5] = vdp2height;
       line[6] = 0;
       line[7] = vdp2height;    
 
+      #ifdef HAVE_GLES
+      // PAndora port
+      #warning *TODO*
+      #else
       glDisable(GL_TEXTURE_2D);
       glVertexPointer(2, GL_INT, 0, line);
       glEnableClientState(GL_VERTEX_ARRAY);

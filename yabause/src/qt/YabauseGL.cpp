@@ -47,9 +47,15 @@ void YabauseGL::resizeGL( int w, int h )
 void YabauseGL::updateView( const QSize& s )
 {
 	const QSize size = s.isValid() ? s : this->size();
-	glViewport( 0, 0, size.width(), size.height() );
-	if ( VIDCore )
-		VIDCore->Resize( size.width(), size.height(), 0 );
+	int new_width = (int)((size.height()/224)*320);
+	// only do something if there really is no aspect ratio
+	if ( size.width() - new_width > 50 )
+	{
+		int spacer = (int)((size.width()-new_width)/2);
+		glViewport( spacer, 0, size.width()-spacer, size.height() );
+		if ( VIDCore )
+			VIDCore->Resize( new_width, size.height(), 0 );
+	}
 }
 
 void YabauseGL::HandleMouseHiding()

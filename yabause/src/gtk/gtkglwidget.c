@@ -133,9 +133,13 @@ static gboolean yui_gl_resize(GtkWidget *w,GdkEventConfigure *event, gpointer da
 
 	if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext))
 		return FALSE;
-
-	glViewport(0, 0, event->width, event->height);
-        if ( YUI_GL(w)->is_init ) VIDCore->Resize(event->width, event->height, FALSE );
+	int new_width = (int)((event->height/224)*320);
+	if ( event->width - new_width > 50 )
+	{
+		int spacer = (int)((event->width-new_width)/2);
+		glViewport(spacer, 0, event->width-spacer, event->height);
+		if ( YUI_GL(w)->is_init ) VIDCore->Resize(new_width, event->height, FALSE );
+	}
 #endif
 	return FALSE;
 }

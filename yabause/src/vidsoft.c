@@ -1775,7 +1775,13 @@ void VIDSoftResize(unsigned int w, unsigned int h, int on)
    glOrtho(-(signed)w, w, -(signed)h, h, 1, 0);
    #endif
 
-   glViewport(0, 0, w, h);
+   int new_w = (int)((h/224)*320);
+
+   if ( w - new_w > 50 )
+   {
+      int spacer = (int)((w-new_w)/2);
+      glViewport( spacer, 0, w-spacer, h);
+   }
    outputwidth = w;
    outputheight = h;
 #endif
@@ -1906,7 +1912,7 @@ int currentPixelIsVisible;
 int characterWidth;
 int characterHeight;
 
-static int getpixel(int linenumber, int currentlineindex) {
+static INLINE int getpixel(int linenumber, int currentlineindex) {
 	
 	u32 characterAddress;
 	u32 colorlut;
@@ -2030,7 +2036,7 @@ static int getpixel(int linenumber, int currentlineindex) {
 	return 0;
 }
 
-static int gouraudAdjust( int color, int tableValue )
+static INLINE int gouraudAdjust( int color, int tableValue )
 {
 	color += (tableValue - 0x10);
 
@@ -2040,7 +2046,7 @@ static int gouraudAdjust( int color, int tableValue )
 	return color;
 }
 
-static void putpixel8(int x, int y) {
+static INLINE void putpixel8(int x, int y) {
 
     int x2 = x / 2;
     int y2 = y / vdp1interlace;
@@ -2085,7 +2091,7 @@ static void putpixel8(int x, int y) {
     }
 }
 
-static void putpixel(int x, int y) {
+static INLINE void putpixel(int x, int y) {
 
 	u16* iPix;
 	int mesh = cmd.CMDPMOD & 0x0100;
@@ -2182,7 +2188,7 @@ static void putpixel(int x, int y) {
 	}
 }
 
-static int iterateOverLine(int x1, int y1, int x2, int y2, int greedy, void *data,
+static INLINE int iterateOverLine(int x1, int y1, int x2, int y2, int greedy, void *data,
 			   int (*line_callback)(int x, int y, int i, void *data)) {
 	int i, a, ax, ay, dx, dy;
 
@@ -2274,7 +2280,7 @@ typedef struct {
   int previousStep;
 } DrawLineData;
 
-static int DrawLineCallback(int x, int y, int i, void *data)
+static INLINE int DrawLineCallback(int x, int y, int i, void *data)
 {
   int currentStep;
   DrawLineData *linedata = data;
@@ -2299,7 +2305,7 @@ static int DrawLineCallback(int x, int y, int i, void *data)
 
   return 0;
 }
-static int DrawLine16b(int x, int y, int i, void *data)
+static INLINE int DrawLine16b(int x, int y, int i, void *data)
 {
   int currentStep;
   DrawLineData *linedata = data;
@@ -2321,7 +2327,7 @@ static int DrawLine16b(int x, int y, int i, void *data)
 
   return 0;
 }
-static int DrawLine8b(int x, int y, int i, void *data)
+static INLINE int DrawLine8b(int x, int y, int i, void *data)
 {
   int currentStep;
   DrawLineData *linedata = data;
