@@ -238,13 +238,13 @@ static FASTCALL s32 m68kq68_exec(s32 cycles)
             fprintf(stderr, "Opcodes per 1M cycles:\n");
             for (i = 0; i < 128; i++) {
                 fprintf(stderr, "%s%8ld%s", i%8==0 ? "    " : "",
-                        (long)((q68_ops[i] + last_report/2) / last_report),
+                        (long)((q68_ops[i] + last_report * 0.5) / last_report),
                         i%8==7 ? "\n" : "");
             }
             fprintf(stderr, "$4xxx opcodes per 1M cycles:\n");
             for (i = 0; i < 32; i++) {
                 fprintf(stderr, "%s%8ld%s", i%8==0 ? "    " : "",
-                        (long)((q68_4xxx_ops[i] + last_report/2) / last_report),
+                        (long)((q68_4xxx_ops[i] + last_report * 0.5) / last_report),
                         i%8==7 ? "\n" : "");
             }
         }

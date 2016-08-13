@@ -2437,7 +2437,7 @@ void VIDOGLVdp1ScaledSpriteDraw(void)
       case 0x6: // Upper-Center
          rw = cmd.CMDXB;
          rh = cmd.CMDYB;
-         x = x - rw/2;
+         x = x - rw * 0.5;
          rw++;
          rh++;
          break;
@@ -2451,15 +2451,15 @@ void VIDOGLVdp1ScaledSpriteDraw(void)
       case 0x9: // Center-left
          rw = cmd.CMDXB;
          rh = cmd.CMDYB;
-         y = y - rh/2;
+         y = y - rh * 0.5;
          rw++;
          rh++;
          break;
       case 0xA: // Center-center
          rw = cmd.CMDXB;
          rh = cmd.CMDYB;
-         x = x - rw/2;
-         y = y - rh/2;
+         x = x - rw * 0.5;
+         y = y - rh * 0.5;
          rw++;
          rh++;
          break;
@@ -2467,7 +2467,7 @@ void VIDOGLVdp1ScaledSpriteDraw(void)
          rw = cmd.CMDXB;
          rh = cmd.CMDYB;
          x = x - rw;
-         y = y - rh/2;
+         y = y - rh * 0.5;
          rw++;
          rh++;
          break;
@@ -2481,7 +2481,7 @@ void VIDOGLVdp1ScaledSpriteDraw(void)
       case 0xE: // Lower-center
          rw = cmd.CMDXB;
          rh = cmd.CMDYB;
-         x = x - rw/2;
+         x = x - rw * 0.5;
          y = y - rh;
          rw++;
          rh++;

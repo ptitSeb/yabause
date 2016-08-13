@@ -469,7 +469,7 @@ void UIHexEditorWnd::keyPressEdit(QKeyEvent *event, u64 posAddr)
       else
       {
          for (int i = 0; i < text.length(); i++)
-            overwrite((u32)(cursorAddr/2), (u8)text[i].toLatin1());
+            overwrite((u32)(cursorAddr * 0.5), (u8)text[i].toLatin1());
       }
       setCursorPos(cursorAddr + 2 * text.length());
       resetSelection(getSelectionStart());
@@ -873,7 +873,7 @@ void UIHexEditorWnd::setCursorPos(s64 position)
    // Time to redraw cursor
    blinkCursor = true;
    viewport()->update();
-   //emit currentAddressChanged(cursorAddr/2);
+   //emit currentAddressChanged(cursorAddr * 0.5);
 }
 
 void UIHexEditorWnd::setHoverPos(s64 position)

@@ -89,7 +89,7 @@ void yui_gl_draw(YuiGl * glxarea) {
 	if (( glxarea->pixels_width < buf_width + X_NOSCALE )&&( glxarea->pixels_height < buf_height + Y_NOSCALE )) {
 
 	  gdk_draw_pixbuf(GTK_WIDGET(glxarea)->window, NULL, pixbuf, 0, 0,
-			  (glxarea->pixels_width-buf_width)/2, (glxarea->pixels_height-buf_height)/2,
+			  (glxarea->pixels_width-buf_width) * 0.5, (glxarea->pixels_height-buf_height) * 0.5,
 			  buf_width, buf_height, GDK_RGB_DITHER_NONE, 0, 0);
 	} else {
 

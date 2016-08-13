@@ -1445,7 +1445,7 @@ void YglRenderVDP1(void) {
          
       if( level->prg[j].currentQuad != 0 )
       {
-         glDrawArrays(GL_TRIANGLES, 0, level->prg[j].currentQuad/2);
+         glDrawArrays(GL_TRIANGLES, 0, level->prg[j].currentQuad * 0.5);
       }
       
       if( level->prg[j].cleanupUniform )
@@ -1705,7 +1705,7 @@ void YglRender(void) {
             }
             if( level->prg[j].currentQuad != 0 )
             {
-               glDrawArrays(GL_TRIANGLES, 0, level->prg[j].currentQuad/2);
+               glDrawArrays(GL_TRIANGLES, 0, level->prg[j].currentQuad * 0.5);
             }
             if( level->prg[j].cleanupUniform )
             {
