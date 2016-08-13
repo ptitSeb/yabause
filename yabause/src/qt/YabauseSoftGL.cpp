@@ -25,7 +25,7 @@
 #include <QPainter>
 
 YabauseGL::YabauseGL( QWidget* p )
-	: QWidget( p )
+	: QWidget( p ), hideMouseTimeout(60)
 {
 	setFocusPolicy( Qt::StrongFocus );
 
@@ -48,6 +48,7 @@ void YabauseGL::updateView( const QSize& s )
 
 void YabauseGL::swapBuffers()
 {
+	this->HandleMouseHiding();
 //	this->update(this->rect());
 	this->repaint(this->rect());
 }
@@ -93,4 +94,41 @@ void YabauseGL::paintEvent( QPaintEvent * event )
 
 void YabauseGL::makeCurrent()
 {
+}
+
+
+void YabauseGL::HandleMouseHiding()
+{
+	// Mouse watchdog timer handling. Basically, if the timeout value is
+	// greater than zero, decrement it. Otherwise, check for zero, if so, then
+	// hide the mouse and set the hideMouseTimeout value to -1 to signal that
+	// the mouse has been hidden.
+	if (hideMouseTimeout > 0)
+		hideMouseTimeout--;
+	else if (hideMouseTimeout == 0)
+	{
+		hideMouseTimeout--;
+		setCursor(Qt::BlankCursor);
+	}
+}
+
+
+// We use this as part of a watchdog system for hiding/unhiding the mouse. This
+// part shows the mouse (if hidden) and resets the watchdog timer.
+void YabauseGL::CheckAndRestoreMouseCursor()
+{
+	// Has the mouse been hidden? (-1 means mouse was hidden)
+	if (hideMouseTimeout == -1)
+		setCursor(Qt::ArrowCursor);
+
+	hideMouseTimeout = 60;
+}
+
+
+// We check here for mouse movement; if there is any, show the mouse and reset
+// the watchdog timer.
+void YabauseGL::mouseMoveEvent(QMouseEvent * event)
+{
+	CheckAndRestoreMouseCursor();
+	QWidget::mouseMoveEvent(event);
 }
