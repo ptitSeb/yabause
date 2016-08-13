@@ -122,7 +122,11 @@ int YuiInit(int sh2core)   {
     yinit.vidcoretype = VIDCORE_SOFT;
     #endif
     yinit.m68kcoretype = M68KCORE_C68K;
+    #if defined(HAVE_LIBSDL) && defined(HAVE_LIBAL)
+    yinit.sndcoretype = 2;
+    #else        
     yinit.sndcoretype = 1;
+    #endif
     yinit.cdcoretype = CDCORE_ISO;
     yinit.carttype = CART_NONE;
     yinit.regionid = REGION_AUTODETECT;
@@ -214,6 +218,7 @@ void YuiSwapBuffers(void)   {
     if ((old_width!=buf_width) || (old_height!=buf_height)) {
     	// set new mode
     	screen = SDL_SetVideoMode(buf_width, buf_height, 0, SDL_HWSURFACE);	// create a window
+        SDL_ShowCursor(SDL_DISABLE);
     	printf("switch screen from %dx%d to %dx%d\n", old_width, old_height, buf_width, buf_height);
     	old_width = buf_width;
     	old_height = buf_height;
